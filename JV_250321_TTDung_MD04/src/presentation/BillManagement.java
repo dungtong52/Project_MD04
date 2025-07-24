@@ -142,15 +142,13 @@ public class BillManagement {
         while (!exit) {
             System.out.println("1. Cập nhật mã nhân viên xuất");
             System.out.println("2. Cập nhật ngày tạo phiếu");
-            System.out.println("3. Cập nhật mã nhân viên duyệt");
-            System.out.println("4. Cập nhật ngày duyệt");
-            System.out.println("5. Cập nhật trạng thái phiếu xuất");
-            System.out.println("6. Cập nhật chi tiết phiếu xuất");
-            System.out.println("7. Thêm chi tiết phiếu xuất");
-            System.out.println("8. Thoát");
+            System.out.println("3. Cập nhật trạng thái phiếu xuất");
+            System.out.println("4. Cập nhật chi tiết phiếu xuất");
+            System.out.println("5. Thêm chi tiết phiếu xuất");
+            System.out.println("6. Thoát");
             System.out.print("Lựa chọn của bạn: ");
             String choice = scanner.nextLine();
-            if (Validation.isIntegerInRange(choice, 1, 8)) {
+            if (Validation.isIntegerInRange(choice, 1, 6)) {
                 switch (Integer.parseInt(choice)) {
                     case 1:
                         bill.setEmpIdCreated(inputEmpIdCreated(scanner));
@@ -159,12 +157,6 @@ public class BillManagement {
                         bill.setCreated(inputCreated(scanner));
                         break;
                     case 3:
-                        bill.setEmpIdAuth(inputEmpIdAuth(scanner));
-                        break;
-                    case 4:
-                        bill.setAuthDate(inputAuthDate(scanner));
-                        break;
-                    case 5:
                         short status = inputStatus(scanner);
                         if (status != 2) {
                             bill.setBillStatus(status);
@@ -172,10 +164,10 @@ public class BillManagement {
                             System.out.println(ANSI_RED + "Không thể cập nhật trạng thái sang 'Duyệt' ở chức năng này!" + ANSI_RESET);
                         }
                         break;
-                    case 6:
+                    case 4:
                         updateBillDetails(scanner, bill.getBillId());
                         break;
-                    case 7:
+                    case 5:
                         createBillDetails(scanner, bill.getBillId());
                         break;
                     default:
@@ -257,7 +249,8 @@ public class BillManagement {
             System.out.println(ANSI_BLUE + "Cập nhật mã nhân viên duyệt và ngày duyệt thành công." + ANSI_RESET);
 
         } else {
-            System.err.printf(ANSI_RED + "Duyệt phiếu có mã code %s thất bại!\n" + ANSI_RESET, billCode);
+            System.err.printf(ANSI_RED + "Duyệt phiếu có mã code %s thất bại!\n" +
+                    "Chỉ được duyệt phiếu trạng thái 'Tạo'" + ANSI_RESET, billCode);
         }
     }
 
@@ -369,36 +362,6 @@ public class BillManagement {
         }
     }
 
-    public String inputEmpIdAuth(Scanner scanner) {
-        while (true) {
-            System.out.print("Nhập vào mã nhân viên duyệt: ");
-            String empIdAuth = scanner.nextLine();
-            if (Validation.isValidLength(empIdAuth, STR_MAX_LENGTH)) {
-                Employee employee = employeeBusiness.getEmployeeById(empIdAuth);
-                if (employee != null) {
-                    return empIdAuth;
-                } else {
-                    System.out.println(ANSI_RED + "Không tồn tại nhân viên này. Vui lòng nhập lại!" + ANSI_RESET);
-                }
-            } else {
-                System.out.printf(ANSI_RED + "Mã nhân viên nhập vào không được rỗng hoặc vượt quá %d ký tự\n" + ANSI_RESET, STR_MAX_LENGTH);
-            }
-        }
-    }
-
-    public LocalDate inputAuthDate(Scanner scanner) {
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
-        while (true) {
-            System.out.print("Nhập vào ngày duyệt phiếu (yyyy-MM-dd): ");
-            String date = scanner.nextLine();
-            if (Validation.isValidDate(date, "yyyy-MM-dd")) {
-                return LocalDate.parse(date, formatter);
-            } else {
-                System.out.println(ANSI_RED + "Ngày nhập vào không hợp lệ. Vui lòng nhập lại!" + ANSI_RESET);
-            }
-        }
-    }
-
     public short inputStatus(Scanner scanner) {
         while (true) {
             System.out.print("Nhập vào trạng thái phiếu nhập (0. Tạo || 1. Hủy || 2. Duyệt): ");
@@ -418,7 +381,11 @@ public class BillManagement {
             if (Validation.isValidLength(productId, STR_MAX_LENGTH)) {
                 Product product = productBusiness.getProductById(productId);
                 if (product != null) {
-                    return productId;
+                    if (product.isProductStatus()) {
+                        return productId;
+                    } else {
+                        System.out.println(ANSI_RED + "Sản phầm này đã ngừng hoạt động!" + ANSI_RESET);
+                    }
                 } else {
                     System.out.println(ANSI_RED + "Không tồn tại mã sản phẩm này" + ANSI_RESET);
                 }

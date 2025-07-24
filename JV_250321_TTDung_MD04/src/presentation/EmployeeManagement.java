@@ -16,7 +16,6 @@ public class EmployeeManagement {
     public static final String ANSI_BLUE = "\u001B[34m";
 
     private final int ID_MAX_LENGTH = 5;
-    private final int MAX_LENGTH = 100;
 
 
     private final EmployeeBusiness employeeBusiness;
@@ -227,6 +226,7 @@ public class EmployeeManagement {
     }
 
     public String inputEmployeeName(Scanner scanner) {
+        int MAX_LENGTH = 100;
         while (true) {
             System.out.print("Nhập tên nhân viên: ");
             String employeeName = scanner.nextLine();

@@ -1,5 +1,6 @@
-package dao;
+package dao.imp;
 
+import dao.BillReceiptDAO;
 import entity.Bill;
 import entity.PaginationResult;
 import utils.ConnectionDB;
@@ -8,7 +9,7 @@ import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 
-public abstract class AbstractBillReceiptDAO implements BillReceiptDAO {
+public abstract class BillReceiptDAOImp implements BillReceiptDAO {
     @Override
     public PaginationResult<Bill> getBillBySearchKey(boolean billType, int size, int currentPage) {
         Connection connection = null;
@@ -145,13 +146,11 @@ public abstract class AbstractBillReceiptDAO implements BillReceiptDAO {
         CallableStatement callableStatement = null;
         try {
             connection = ConnectionDB.openConnection();
-            callableStatement = connection.prepareCall("{call update_bill(?,?,?,?,?,?)}");
+            callableStatement = connection.prepareCall("{call update_bill(?,?,?,?)}");
             callableStatement.setString(1, bill.getBillCode());
             callableStatement.setString(2, bill.getEmpIdCreated());
             callableStatement.setDate(3, Date.valueOf(bill.getCreated()));
-            callableStatement.setString(4, bill.getEmpIdAuth());
-            callableStatement.setDate(5, Date.valueOf(bill.getAuthDate()));
-            callableStatement.setShort(6, bill.getBillStatus());
+            callableStatement.setShort(4, bill.getBillStatus());
             int rows = callableStatement.executeUpdate();
             if (rows > 0) return true;
         } catch (Exception e) {

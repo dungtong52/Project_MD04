@@ -16,8 +16,6 @@ public class ProductManagement {
     public static final String ANSI_BLUE = "\u001B[34m";
 
     private final int ID_MAX_LENGTH = 5;
-    private final int NAME_MAX_LENGTH = 150;
-    private final int MANUFAC_MAX_LENGTH = 200;
 
     private final ProductBusiness productBusiness;
 
@@ -195,9 +193,11 @@ public class ProductManagement {
     }
 
     public String inputProductName(Scanner scanner) {
+        int NAME_MAX_LENGTH = 150;
         while (true) {
             System.out.print("Nhập tên sản phẩm: ");
             String productName = scanner.nextLine();
+
             if (Validation.isValidLength(productName, NAME_MAX_LENGTH)) {
                 if (!productBusiness.checkExistProductName(productName)) {
                     return productName;
@@ -211,9 +211,11 @@ public class ProductManagement {
     }
 
     public String inputManufacturer(Scanner scanner) {
+        int MANUFAC_MAX_LENGTH = 200;
         while (true) {
             System.out.print("Nhập tên nhà sản xuất: ");
             String manufacturer = scanner.nextLine();
+
             if (Validation.isValidLength(manufacturer, MANUFAC_MAX_LENGTH)) {
                 return manufacturer;
             } else {

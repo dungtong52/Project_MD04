@@ -12,8 +12,6 @@ public class WarehouseManagement {
     public static final String ANSI_RED = "\u001B[31m";
     public static final String ANSI_BLUE = "\u001B[34m";
 
-    private final int CODE_MAX_LENGTH = 10;
-
     private final ProductManagement productManagement;
     private final EmployeeManagement employeeManagement;
     private final AccountManagement accountManagement;
@@ -224,9 +222,11 @@ public class WarehouseManagement {
     }
 
     public String inputBillCode(Scanner scanner, boolean billType) {
+        int CODE_MAX_LENGTH = 10;
         while (true) {
             System.out.println("Nhập vào mã code: ");
             String billCode = scanner.nextLine();
+
             if (Validation.isValidLength(billCode, CODE_MAX_LENGTH)) {
                 if (userBusiness.checkExistBillCode(billCode, billType, AccountManagement.currentAccount.getEmpId())) {
                     return billCode;

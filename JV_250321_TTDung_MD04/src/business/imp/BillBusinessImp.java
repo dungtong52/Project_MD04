@@ -1,17 +1,14 @@
 package business.imp;
 
-import business.BaseBillReceiptBusinessImp;
-import business.PaginationBusiness;
 import dao.BillReceiptDAO;
-import dao.imp.BillDAOImp;
+import dao.imp.BillDAOImpImp;
 import entity.Bill;
-import entity.PaginationResult;
 
-public class BillBusinessImp extends BaseBillReceiptBusinessImp{
+public class BillBusinessImp extends BillReceiptBusinessImp {
     private final BillReceiptDAO billReceiptDAO;
 
     public BillBusinessImp() {
-        billReceiptDAO = new BillDAOImp();
+        billReceiptDAO = new BillDAOImpImp();
     }
 
     @Override

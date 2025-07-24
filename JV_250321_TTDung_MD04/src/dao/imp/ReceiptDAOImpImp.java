@@ -1,6 +1,5 @@
 package dao.imp;
 
-import dao.AbstractBillReceiptDAO;
 import entity.Bill;
 import utils.ConnectionDB;
 
@@ -9,7 +8,7 @@ import java.sql.Connection;
 import java.sql.Date;
 import java.sql.SQLException;
 
-public class ReceiptDAOImp extends AbstractBillReceiptDAO {
+public class ReceiptDAOImpImp extends BillReceiptDAOImp {
 
     @Override
     public boolean acceptBill(Bill bill) {

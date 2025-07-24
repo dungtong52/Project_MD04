@@ -16,9 +16,6 @@ public class AccountManagement {
 
     public static Account currentAccount = new Account();
 
-    private final int STR_MAX_LENGTH = 30;
-    private final int ID_MAX_LENGTH = 5;
-
     private final AccountBusiness accountBusiness;
     private final EmployeeBusiness employeeBusiness;
 
@@ -137,9 +134,11 @@ public class AccountManagement {
     }
 
     public String inputUserName(Scanner scanner) {
+        int STR_MAX_LENGTH = 30;
         while (true) {
             System.out.print("Nhập vào tên tài khoản: ");
             String userName = scanner.nextLine();
+
             if (Validation.isValidLength(userName, STR_MAX_LENGTH)) {
                 boolean isExist = accountBusiness.checkExistAccountName(userName);
                 if (!isExist) {
@@ -167,9 +166,11 @@ public class AccountManagement {
     }
 
     public String inputEmpId(Scanner scanner) {
+        int ID_MAX_LENGTH = 5;
         while (true) {
             System.out.print("Nhập vào mã nhân viên: ");
             String empId = scanner.nextLine();
+
             if (Validation.isValidLength(empId, ID_MAX_LENGTH)) {
                 boolean isExistInAccountTable = accountBusiness.checkExistEmpId(empId);
                 if (!isExistInAccountTable) {
