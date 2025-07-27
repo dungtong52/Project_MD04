@@ -56,9 +56,7 @@ public class ReceiptManagement {
                 String billCode;
                 switch (Integer.parseInt(choice)) {
                     case 1:
-                        Bill receipt = new Bill();
-                        receipt.setBillType(true);
-                        PaginationPresentation.getListPagination(scanner, receiptBusiness, "bills", receipt);
+                        printReceiptList(scanner);
                         break;
                     case 2:
                         createReceipt(scanner);
@@ -88,12 +86,18 @@ public class ReceiptManagement {
         }
     }
 
+    public void printReceiptList(Scanner scanner){
+        Bill receipt = new Bill();
+        receipt.setBillType(true);
+        PaginationPresentation.getListPagination(scanner, receiptBusiness, "bills", receipt);
+    }
+
     public void createReceipt(Scanner scanner) {
         Bill receipt = new Bill();
         String billCode = inputNewBillCode(scanner);
 
         receipt.setBillCode(billCode);
-        receipt.setBillType(false);
+        receipt.setBillType(true);
         receipt.setEmpIdCreated(AccountManagement.currentAccount.getEmpId());
 
         boolean success = receiptBusiness.createBill(receipt);
@@ -191,55 +195,59 @@ public class ReceiptManagement {
     }
 
     public void updateReceiptDetails(Scanner scanner, long billId) {
-        getReceiptDetailsByBillId(scanner, billId);
-
-        System.out.print("Nhập vào mã phiếu chi tiết muốn cập nhật: ");
-        String receiptDetailId = scanner.nextLine();
-        if (Validation.isValidType(receiptDetailId, "Long")) {
-            BillDetail billDetail = billReceiptDetailsBusiness.findBillDetailById(Long.parseLong(receiptDetailId));
-            boolean exit = false;
-            while (!exit) {
-                System.out.println("1. Cập nhật mã sản phẩm");
-                System.out.println("2. Cập nhật số lượng");
-                System.out.println("3. Cập nhật giá");
-                System.out.println("4. Thoát");
-                System.out.print("Lựa chọn của bạn: ");
-                String choice = scanner.nextLine();
-                if (Validation.isIntegerInRange(choice, 1, 4)) {
-                    switch (Integer.parseInt(choice)) {
-                        case 1:
-                            billDetail.setProductId(inputProductId(scanner));
-                            break;
-                        case 2:
-                            billDetail.setQuantity(inputQuantity(scanner));
-                            break;
-                        case 3:
-                            billDetail.setPrice(inputPrice(scanner));
-                            break;
-                        default:
-                            exit = true;
-                    }
-                    boolean success = billReceiptDetailsBusiness.updateBillDetails(billDetail);
-                    if (success) {
-                        System.out.println(ANSI_BLUE + "Cập nhật chi tiết phiếu nhập thành công." + ANSI_RESET);
-                    } else {
-                        System.out.println(ANSI_RED + "Cập nhật chi tiết phiếu nhập thất bại!" + ANSI_RESET);
+        if (getReceiptDetailsByBillId(scanner, billId)) {
+            System.out.print("Nhập vào mã phiếu chi tiết muốn cập nhật (Bill Detail ID): ");
+            String receiptDetailId = scanner.nextLine();
+            if (Validation.isValidType(receiptDetailId, "Long")) {
+                BillDetail billDetail = billReceiptDetailsBusiness.findBillDetailById(Long.parseLong(receiptDetailId), billId);
+                if (billDetail != null) {
+                    boolean exit = false;
+                    while (!exit) {
+                        System.out.println("1. Cập nhật mã sản phẩm");
+                        System.out.println("2. Cập nhật số lượng");
+                        System.out.println("3. Cập nhật giá");
+                        System.out.println("4. Thoát");
+                        System.out.print("Lựa chọn của bạn: ");
+                        String choice = scanner.nextLine();
+                        if (Validation.isIntegerInRange(choice, 1, 4)) {
+                            switch (Integer.parseInt(choice)) {
+                                case 1:
+                                    billDetail.setProductId(inputProductId(scanner));
+                                    break;
+                                case 2:
+                                    billDetail.setQuantity(inputQuantity(scanner));
+                                    break;
+                                case 3:
+                                    billDetail.setPrice(inputPrice(scanner));
+                                    break;
+                                default:
+                                    exit = true;
+                            }
+                            boolean success = billReceiptDetailsBusiness.updateBillDetails(billDetail);
+                            if (success) {
+                                System.out.println(ANSI_BLUE + "Cập nhật chi tiết phiếu nhập thành công." + ANSI_RESET);
+                            } else {
+                                System.out.println(ANSI_RED + "Cập nhật chi tiết phiếu nhập thất bại!" + ANSI_RESET);
+                            }
+                        } else {
+                            System.out.println(ANSI_RED + "Chỉ được nhập vào số nguyên từ 1-4." + ANSI_RESET);
+                        }
                     }
                 } else {
-                    System.out.println(ANSI_RED + "Chỉ được nhập vào số nguyên từ 1-4." + ANSI_RESET);
+                    System.out.println(ANSI_RED + "Mã phiếu chi tiết này không tồn tại." + ANSI_RESET);
                 }
+            } else {
+                System.out.println(ANSI_RED + "Mã phiếu chi tiết không hợp lệ. Vui lòng nhập lại!" + ANSI_RESET);
             }
-        } else {
-            System.out.println(ANSI_RED + "Mã phiếu chi tiết không hợp lệ. Vui lòng nhập lại!" + ANSI_RESET);
         }
     }
 
-    public void getReceiptDetailsByBillId(Scanner scanner, long billId) {
+    public boolean getReceiptDetailsByBillId(Scanner scanner, long billId) {
         BillDetail receiptDetailSearch = new BillDetail();
         receiptDetailSearch.setBillId(billId);
 
-        System.out.println("Danh sách chi tiết phiếu nhập có mã phiếu " + billId);
-        PaginationPresentation.getListPagination(scanner, billReceiptDetailsBusiness, "bill details", receiptDetailSearch);
+        System.out.println("Danh sách chi tiết phiếu nhập có mã phiếu Bill ID: " + billId);
+        return PaginationPresentation.getListPagination(scanner, billReceiptDetailsBusiness, "bill details", receiptDetailSearch);
     }
 
     public void acceptReceipt(String billCode) {
@@ -266,8 +274,8 @@ public class ReceiptManagement {
 
         boolean exit = false;
         while (!exit) {
-            System.out.println("1. Cập nhật phiếu nhập trên");
-            System.out.println("2. Duyệt phiếu nhập trên");
+            System.out.println("1. Cập nhật phiếu nhập Bill Code " + billCode);
+            System.out.println("2. Duyệt phiếu nhập Bill Code" + billCode);
             System.out.println("3. Thoát");
             System.out.print("Lựa chọn: ");
             String choice = scanner.nextLine();
@@ -369,19 +377,19 @@ public class ReceiptManagement {
 
     public short inputStatus(Scanner scanner) {
         while (true) {
-            System.out.print("Nhập vào trạng thái phiếu nhập (0. Tạo || 1. Hủy || 2. Duyệt): ");
+            System.out.print("Nhập vào trạng thái phiếu nhập (0. Tạo || 1. Hủy): ");
             String status = scanner.nextLine();
-            if (Validation.isIntegerInRange(status, 0, 2)) {
+            if (Validation.isIntegerInRange(status, 0, 1)) {
                 return Short.parseShort(status);
             } else {
-                System.out.println(ANSI_RED + "Nhập vào số 0 (Tạo) hoặc 1 (Hủy) hoặc 2 (Duyệt)" + ANSI_RESET);
+                System.out.println(ANSI_RED + "Nhập vào số 0 hoặc 1" + ANSI_RESET);
             }
         }
     }
 
     public String inputProductId(Scanner scanner) {
         while (true) {
-            System.out.print("Nhập vào mã sản phẩm: ");
+            System.out.print("Nhập vào mã sản phẩm (Product ID): ");
             String productId = scanner.nextLine();
             if (Validation.isValidLength(productId, STR_MAX_LENGTH)) {
                 Product product = productBusiness.getProductById(productId);
@@ -389,7 +397,7 @@ public class ReceiptManagement {
                     if (product.isProductStatus()) {
                         return productId;
                     } else {
-                        System.out.println(ANSI_RED + "Sản phẩm này đã ngừng hoạt động");
+                        System.out.println(ANSI_RED + "Sản phẩm này đã ngừng hoạt động" + ANSI_RESET);
                     }
                 } else {
                     System.out.println(ANSI_RED + "Không tồn tại mã sản phẩm này" + ANSI_RESET);

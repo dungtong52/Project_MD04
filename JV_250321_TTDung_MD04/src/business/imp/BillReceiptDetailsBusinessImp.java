@@ -22,18 +22,13 @@ public class BillReceiptDetailsBusinessImp implements BillReceiptDetailsBusiness
     }
 
     @Override
-    public BillDetail findBillDetailById(long billDetailId) {
-        return billReceiptDetailDAO.findBillDetailById(billDetailId);
+    public BillDetail findBillDetailById(long billDetailId, long billId) {
+        return billReceiptDetailDAO.findBillDetailById(billDetailId, billId);
     }
 
     @Override
     public boolean updateBillDetails(BillDetail billDetail) {
         return billReceiptDetailDAO.updateBillDetails(billDetail);
-    }
-
-    @Override
-    public boolean acceptBill(long billId) {
-        return billReceiptDetailDAO.acceptBill(billId);
     }
 
     @Override

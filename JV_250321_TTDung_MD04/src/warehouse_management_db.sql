@@ -6,7 +6,7 @@ create table products
     product_id     char(5) primary key,
     product_name   varchar(150) not null unique,
     manufacturer   varchar(200) not null,
-    created        date,
+    created        datetime              default current_timestamp,
     batch          smallint     not null,
     quantity       int          not null default 0,
     product_status bit                   default 1
@@ -40,9 +40,9 @@ create table bills
     bill_code      varchar(10) not null unique,
     bill_type      bit         not null,
     emp_id_created char(5)     not null,
-    created        date,
+    created        datetime             default current_timestamp,
     emp_id_auth    char(5),
-    auth_date      date,
+    auth_date      datetime             default current_timestamp,
     bill_status    smallint    not null default 0,
     foreign key (emp_id_created) references employees (emp_id),
     foreign key (emp_id_auth) references employees (emp_id)
@@ -68,7 +68,7 @@ create procedure get_account_to_login(
     in_password varchar(30)
 )
 begin
-    select acc_id, permission, emp_id, acc_status
+    select acc_id, user_name, permission, emp_id, acc_status
     from accounts
     where user_name = in_user_name
       and password = in_password;
@@ -358,7 +358,8 @@ begin
     update products p
         join bill_details bd on p.product_id = bd.product_id
     set p.quantity = p.quantity + bd.quantity
-    where bd.bill_id = in_bill_id;
+    where bd.bill_id = in_bill_id
+      and p.product_status = 1;
 
     -- Cập nhật mã ID người duyệt và ngày duyệt
     update bills
@@ -404,7 +405,8 @@ begin
     update products p
         join bill_details bd on p.product_id = bd.product_id
     set p.quantity = p.quantity - bd.quantity
-    where bd.bill_id = in_bill_id;
+    where bd.bill_id = in_bill_id
+      and p.product_status = 1;
 
     -- Cập nhật mã ID người duyệt và ngày duyệt
     update bills
@@ -501,16 +503,12 @@ create procedure update_bill(
     in_bill_code varchar(10),
     in_emp_id_created char(5),
     in_created date,
-    in_emp_id_auth char(5),
-    in_auth_date date,
     in_bill_status smallint
 )
 begin
     update bills
     set emp_id_created = in_emp_id_created,
         created        = in_created,
-        emp_id_auth    = in_emp_id_auth,
-        auth_date      = in_auth_date,
         bill_status    = in_bill_status
     where bill_code = in_bill_code
       and (bill_status = 0 or bill_status = 1);
@@ -560,15 +558,20 @@ begin
     set total_pages = ceiling(v_total_details / in_size);
 end //
 
-create procedure find_bill_detail_by_id(in_bill_detail_id bigint)
+create procedure find_bill_detail_by_id(
+    in_bill_detail_id bigint,
+    in_bill_id bigint
+)
 begin
     select bill_detail_id, bill_id, product_id, quantity, price
     from bill_details
-    where bill_detail_id = in_bill_detail_id;
+    where bill_detail_id = in_bill_detail_id
+      and bill_id = in_bill_id;
 end //
 
 create procedure update_bill_detail(
     in_bill_detail_id bigint,
+    in_bill_id bigint,
     in_product_id char(5),
     in_quantity int,
     in_price float
@@ -578,7 +581,8 @@ begin
     set product_id = in_product_id,
         quantity   = in_quantity,
         price      = in_price
-    where bill_detail_id = in_bill_detail_id;
+    where bill_detail_id = in_bill_detail_id
+      and bill_id = in_bill_id;
 end //
 
 DELIMITER ;
@@ -659,6 +663,7 @@ begin
              join bill_details bd on b.bill_id = bd.bill_id
              join products p on p.product_id = bd.product_id
     where b.bill_type = in_bill_type
+      and b.bill_status = 2
       and b.created between in_start_date and in_end_date
     group by bd.product_id
     order by sum(bd.quantity) desc
@@ -677,6 +682,7 @@ begin
              join bill_details bd on b.bill_id = bd.bill_id
              join products p on p.product_id = bd.product_id
     where b.bill_type = in_bill_type
+      and b.bill_status = 2
       and b.created between in_start_date and in_end_date
     group by bd.product_id
     order by sum(bd.quantity)
@@ -781,66 +787,85 @@ begin
     limit 1;
 end //
 
+create procedure update_password(
+    in_acc_id int,
+    in_email varchar(100),
+    in_phone varchar(100),
+    in_old_password varchar(30),
+    in_new_password varchar(30)
+)
+begin
+    declare v_email varchar(100);
+    declare v_phone varchar(100);
+    declare v_password varchar(30);
+
+    -- Lấy thông tin email, password, phone
+    select e.email, e.phone, a.password
+    into v_email, v_phone, v_password
+    from employees e
+             join accounts a on e.emp_id = a.emp_id
+    where acc_id = in_acc_id;
+    -- Kiểm tra rồi cập nhật
+    if (v_email <> in_email) then
+        signal sqlstate "45000" set message_text = "Email nhập vào không đúng!";
+    elseif (v_phone <> in_phone) then
+        signal sqlstate "45000" set message_text = "Số điện thoại nhập vào không đúng!";
+    elseif (v_password <> in_old_password) then
+        signal sqlstate "45000" set message_text = "Password nhập vào không đúng!";
+    else
+        update accounts set password = in_new_password where acc_id = in_acc_id;
+    end if;
+
+end //
+
 DELIMITER ;
 
 -- Bảng sản phẩm
-INSERT INTO products (product_id, product_name, manufacturer, created, batch, quantity, product_status)
-VALUES ('P001', 'Product 1', 'Manufacturer 1', '2023-03-15', 3, 0, 1),
-       ('P002', 'Product 2', 'Manufacturer 2', '2022-07-20', 2, 0, 1),
-       ('P003', 'Product 3', 'Manufacturer 3', '2024-01-11', 1, 0, 0),
-       ('P004', 'Product 4', 'Manufacturer 1', '2023-12-05', 5, 0, 1),
-       ('P005', 'Product 5', 'Manufacturer 2', '2023-05-25', 4, 0, 1),
-       ('P006', 'Product 6', 'Manufacturer 3', '2022-09-18', 2, 0, 0),
-       ('P007', 'Product 7', 'Manufacturer 1', '2023-10-01', 3, 0, 1),
-       ('P008', 'Product 8', 'Manufacturer 2', '2024-03-03', 1, 0, 1),
-       ('P009', 'Product 9', 'Manufacturer 3', '2022-12-29', 2, 0, 0),
-       ('P010', 'Product 10', 'Manufacturer 1', '2023-08-08', 4, 0, 1);
+INSERT INTO products (product_id, product_name, manufacturer, batch)
+VALUES ('P001', 'Product 1', 'Manufacturer 1', 3),
+       ('P002', 'Product 2', 'Manufacturer 2', 2),
+       ('P003', 'Product 3', 'Manufacturer 3', 1),
+       ('P004', 'Product 4', 'Manufacturer 1', 5),
+       ('P005', 'Product 5', 'Manufacturer 2', 4),
+       ('P006', 'Product 6', 'Manufacturer 3', 2),
+       ('P007', 'Product 7', 'Manufacturer 1', 3),
+       ('P008', 'Product 8', 'Manufacturer 2', 1),
+       ('P009', 'Product 9', 'Manufacturer 3', 2),
+       ('P010', 'Product 10', 'Manufacturer 1', 4),
+       ('P011', 'Product 11', 'Manufacturer 2', 2);
 
--- Bảng nhân viên
 INSERT INTO employees (emp_id, emp_name, birth_of_date, email, phone, address, emp_status)
-VALUES ('E001', 'Employee 1', '1990-06-15', 'employee1@example.com', '0123456789', '123 Main St, District 1', 0),
-       ('E002', 'Employee 2', '1988-11-22', 'employee2@example.com', '0987654321', '456 2nd Ave, District 3', 0),
-       ('E003', 'Employee 3', '1995-03-05', 'employee3@example.com', '0901234567', '789 3rd Blvd, District 5', 0),
-       ('E004', 'Employee 4', '1992-08-30', 'employee4@example.com', '0912345678', '234 4th St, District 7', 0),
-       ('E005', 'Employee 5', '1985-01-19', 'employee5@example.com', '0934567890', '567 5th Ave, District 9', 0);
+VALUES ('E001', 'Employee 1', '1990-06-15', 'employee1@example.com', '0123456789', 'District 1, HCM', 0),
+       ('E002', 'Employee 2', '1988-11-22', 'employee2@example.com', '0987654321', 'District 2, HCM', 0),
+       ('E003', 'Employee 3', '1995-03-05', 'employee3@example.com', '0901234567', 'District 3, HCM', 0),
+       ('E004', 'Employee 4', '1992-08-30', 'employee4@example.com', '0912345678', 'District 4, HCM', 0),
+       ('E005', 'Employee 5', '1985-01-19', 'employee5@example.com', '0934567890', 'District 5, HCM', 0),
+       ('E006', 'Employee 6', '1980-01-19', 'employee6@example.com', '0934567890', 'District 6, HCM', 0);
 
--- Bảng tài khoản
-INSERT INTO accounts (acc_id, user_name, password, permission, emp_id, acc_status)
-VALUES (1, 'user1', 'User111$', 0, 'E001', 1),
-       (2, 'user2', 'User222$', 1, 'E002', 1),
-       (3, 'user3', 'User333$', 1, 'E003', 1),
-       (4, 'user4', 'User444$', 1, 'E004', 0),
-       (5, 'user5', 'User555$', 1, 'E005', 1);
+INSERT INTO accounts (user_name, password, permission, emp_id)
+VALUES ('admin1', 'Admin111$', 0, 'E001'),
+       ('user2', 'User222$', 1, 'E002'),
+       ('user3', 'User333$', 1, 'E003'),
+       ('user4', 'User444$', 1, 'E004'),
+       ('user5', 'User555$', 1, 'E005'),
+       ('admin2', 'Admin222$', 0, 'E006');
 
--- Bảng phiếu (bills)
-INSERT INTO bills (bill_id, bill_code, bill_type, emp_id_created, created, emp_id_auth, auth_date, bill_status)
-VALUES (1, 'B001', 0, 'E001', '2024-05-10', 'E002', '2024-05-11', 2), -- Nhập, đã duyệt
-       (2, 'B002', 1, 'E002', '2024-05-12', NULL, '1970-01-01', 0),   -- Xuất, chờ duyệt
-       (3, 'B003', 0, 'E003', '2024-06-01', NULL, '1970-01-01', 0),   -- Nhập, chờ duyệt
-       (4, 'B004', 1, 'E001', '2024-06-03', 'E003', '2024-06-04', 2), -- Xuất, đã duyệt
-       (5, 'B005', 0, 'E002', '2024-06-10', NULL, '1970-01-01', 1);
--- Nhập, đã hủy
+INSERT INTO bills (bill_code, bill_type, emp_id_created, emp_id_auth)
+VALUES ('B001', 0, 'E001', NULL),
+       ('B002', 1, 'E002', NULL),
+       ('B003', 0, 'E003', NULL),
+       ('B004', 1, 'E001', NULL),
+       ('B005', 0, 'E002', NULL);
 
--- Bảng chi tiết phiếu (bill_details)
-INSERT INTO bill_details (bill_detail_id, bill_id, product_id, quantity, price)
-VALUES
--- B001 - Phiếu nhập
-(1, 1, 'P001', 50, 12000),
-(2, 1, 'P002', 30, 15000),
-(3, 1, 'P003', 20, 10000),
-
--- B002 - Phiếu xuất (chờ duyệt)
-(4, 2, 'P001', 10, 15000),
-(5, 2, 'P004', 5, 20000),
-
--- B003 - Phiếu nhập (chờ duyệt)
-(6, 3, 'P005', 40, 11000),
-(7, 3, 'P006', 25, 13000),
-
--- B004 - Phiếu xuất (đã duyệt)
-(8, 4, 'P002', 15, 15000),
-(9, 4, 'P007', 10, 18000),
-
--- B005 - Phiếu nhập (đã hủy)
-(10, 5, 'P008', 30, 12500);
+INSERT INTO bill_details (bill_id, product_id, quantity, price)
+VALUES (1, 'P001', 50, 12000),
+       (1, 'P002', 30, 15000),
+       (1, 'P003', 20, 10000),
+       (2, 'P001', 10, 15000),
+       (2, 'P004', 5, 20000),
+       (3, 'P005', 40, 11000),
+       (3, 'P006', 25, 13000),
+       (4, 'P002', 15, 15000),
+       (4, 'P007', 10, 18000),
+       (5, 'P008', 30, 12500);
 

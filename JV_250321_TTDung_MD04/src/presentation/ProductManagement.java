@@ -108,6 +108,8 @@ public class ProductManagement {
                     default:
                         exit = true;
                 }
+            } else {
+                System.out.println(ANSI_RED + "Nhập vào số nguyên trong phạm vi 1-5" + ANSI_RESET);
             }
         }
         if (productBusiness.updateProduct(updateProduct)) {
@@ -125,6 +127,14 @@ public class ProductManagement {
             if (Validation.isNotEmpty(productName)) {
                 product.setProductName(productName);
                 PaginationPresentation.getListPagination(scanner, productBusiness, "products", product);
+                System.out.print("Bạn có muốn cập nhật sản phẩm không? (1. No | 2. Yes): ");
+                String choiceInput = scanner.nextLine();
+                if (Validation.isIntegerInRange(choiceInput, 1, 2)) {
+                    if (Integer.parseInt(choiceInput) == 2)
+                        updateProduct(scanner);
+                } else {
+                    System.out.println(ANSI_RED + "Thông tin nhập không hợp lệ!" + ANSI_RESET);
+                }
                 break;
             }
             System.out.println(ANSI_RED + "Không được để trống!" + ANSI_RESET);
@@ -162,7 +172,7 @@ public class ProductManagement {
 
     public String inputProductIdForCreate(Scanner scanner) {
         while (true) {
-            System.out.print("Nhập mã sản phẩm: ");
+            System.out.print("Nhập mã sản phẩm (Product ID): ");
             String productId = scanner.nextLine();
             if (Validation.isValidLength(productId, ID_MAX_LENGTH)) {
                 if (productBusiness.getProductById(productId) == null) {

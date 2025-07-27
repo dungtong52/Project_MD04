@@ -98,15 +98,33 @@ public class ReportManagement {
 
     public void statisticBillInRange(Scanner scanner, boolean billType) {
         while (true) {
-            System.out.print("Nhập vào khoảng thời gian cần thống kê. Ngày bắt đầu (yyyy-MM-dd): ");
-            String startDate = scanner.nextLine();
+            System.out.print("Nhập vào khoảng thời gian cần thống kê.\n" +
+                    "Ngày bắt đầu (yyyy-MM-dd): ");
+            String startDateInput = scanner.nextLine();
             System.out.print("Ngày kết thúc (yyyy-MM-dd): ");
-            String endDate = scanner.nextLine();
-            if (Validation.isValidDate(startDate, "yyyy-MM-dd") && Validation.isValidDate(endDate, "yyyy-MM-dd")) {
+            String endDateInput = scanner.nextLine();
+            if (Validation.isValidDate(startDateInput, "yyyy-MM-dd") &&
+                    Validation.isValidDate(endDateInput, "yyyy-MM-dd")) {
+
+                LocalDate startDate = LocalDate.parse(startDateInput);
+                LocalDate endDate = LocalDate.parse(endDateInput);
+
+                if (endDate.isBefore(startDate)) {
+                    System.out.println(ANSI_RED + "Ngày kết thúc phải sau hoặc bằng ngày bắt đầu!" + ANSI_RESET);
+                    continue;
+                }
+
                 List<StatisticRevenueCost> statisticRevenueCosts =
-                        statisticBusiness.statisticRevenueCostInRange(billType, LocalDate.parse(startDate), LocalDate.parse(endDate));
-                statisticRevenueCosts.forEach(item ->
-                        System.out.printf("%s: %,.1f", item.getDate(), item.getTotalAmount()));
+                        statisticBusiness.statisticRevenueCostInRange(billType, startDate, endDate);
+                if (statisticRevenueCosts.isEmpty()) {
+                    System.out.println(ANSI_RED + "Không có thống kê." + ANSI_RESET);
+                } else {
+                    System.out.printf("Thống kê '%s' trong khoảng thời gian %s đến %s\n",
+                            billType ? "chi phí" : "doanh thu",
+                            startDate, endDate);
+                    statisticRevenueCosts.forEach(item ->
+                            System.out.printf("%s: %,.1f\n", item.getDate(), item.getTotalAmount()));
+                }
                 break;
             } else {
                 System.out.println(ANSI_RED + "Thông tin nhập không đúng định dạng" + ANSI_RESET);
@@ -115,22 +133,44 @@ public class ReportManagement {
     }
 
     public void statisticEmpByStatus() {
-        System.out.println("Thống kê nhân viên theo trạng thái");
         List<StatisticEmployee> statisticEmployeeList = statisticBusiness.statisticEmployeeByStatus();
-        statisticEmployeeList.forEach(System.out::println);
+        if (statisticEmployeeList.isEmpty()) {
+            System.out.println(ANSI_RED + "Không có thống kê." + ANSI_RESET);
+        } else {
+            System.out.println("Thống kê nhân viên theo trạng thái");
+            statisticEmployeeList.forEach(System.out::println);
+        }
     }
 
     public void statisticProductInRange(Scanner scanner, String type, boolean billType) {
         while (true) {
-            System.out.print("Nhập vào khoảng thời gian cần thống kê. Ngày bắt đầu (yyyy-MM-dd): ");
+            System.out.print("Nhập vào khoảng thời gian cần thống kê.\n" +
+                    "Ngày bắt đầu (yyyy-MM-dd): ");
             String startDate = scanner.nextLine();
             System.out.print("Ngày kết thúc (yyyy-MM-dd): ");
             String endDate = scanner.nextLine();
 
-            if (Validation.isValidDate(startDate, "yyyy-MM-dd") && Validation.isValidDate(endDate, "yyyy-MM-dd")) {
-                System.out.println("Sản phẩm cần tìm:");
-                StatisticProduct statisticProduct = statisticBusiness.statisticProductInRange(type, billType, LocalDate.parse(startDate), LocalDate.parse(endDate));
-                System.out.println(statisticProduct);
+            if (Validation.isValidDate(startDate, "yyyy-MM-dd") &&
+                    Validation.isValidDate(endDate, "yyyy-MM-dd")) {
+
+                LocalDate start = LocalDate.parse(startDate);
+                LocalDate end = LocalDate.parse(endDate);
+
+                if (end.isBefore(start)) {
+                    System.out.println(ANSI_RED + "Ngày kết thúc phải sau hoặc bằng ngày bắt đầu!" + ANSI_RESET);
+                    continue;
+                }
+
+                StatisticProduct statisticProduct = statisticBusiness.statisticProductInRange(
+                        type, billType, start, end);
+
+                if (statisticProduct == null) {
+                    System.out.println(ANSI_RED + "Không có sản phẩm nào." + ANSI_RESET);
+                } else {
+                    System.out.println("Sản phẩm cần tìm:");
+                    System.out.println(statisticProduct);
+                }
+
                 break;
             } else {
                 System.out.println(ANSI_RED + "Thông tin nhập không đúng định dạng" + ANSI_RESET);

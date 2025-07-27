@@ -90,17 +90,21 @@ public class AccountManagement {
 
     public void updateAccountStatus(Scanner scanner) {
         while (true) {
-            System.out.print("Nhập vào mã tài khoản muốn cập nhật: ");
+            System.out.print("Nhập vào mã tài khoản muốn cập nhật (Account ID): ");
             String accountIdInput = scanner.nextLine();
             if (Validation.isValidType(accountIdInput, "Integer")) {
                 int accountId = Integer.parseInt(accountIdInput);
                 Account account = accountBusiness.getAccountById(accountId);
                 if (account != null) {
                     System.out.printf("Trạng thái hiện tại của tài khoản %d: %s\n", accountId, account.isAccStatus());
-                    if (account.getUserName().equals(AccountManagement.currentAccount.getUserName()) || !account.isPermission()) {
+
+                    System.out.println(AccountManagement.currentAccount.getUserName());
+                    System.out.println(account.getUserName());
+                    if (account.getUserName().equals(AccountManagement.currentAccount.getUserName()) || account.isPermission()) {
                         account.setAccStatus(inputAccStatus(scanner));
                         if (accountBusiness.updateAccountStatus(account)) {
                             System.out.println(ANSI_BLUE + "Cập nhật thành công" + ANSI_RESET);
+
                             PaginationPresentation.printTableHeader("accounts");
                             System.out.printf("| %-5s %s\n", 1, account);
                             PaginationPresentation.printDivider();
@@ -136,7 +140,7 @@ public class AccountManagement {
     public String inputUserName(Scanner scanner) {
         int STR_MAX_LENGTH = 30;
         while (true) {
-            System.out.print("Nhập vào tên tài khoản: ");
+            System.out.print("Nhập vào tên tài khoản (User Name): ");
             String userName = scanner.nextLine();
 
             if (Validation.isValidLength(userName, STR_MAX_LENGTH)) {
@@ -154,8 +158,7 @@ public class AccountManagement {
 
     public String inputPassword(Scanner scanner) {
         while (true) {
-            System.out.println("Mật khẩu tối thiểu 8 ký tự gồm chữ, số và ký tự %, $.");
-            System.out.print("Nhập vào mật khẩu: ");
+            System.out.print("Nhập vào mật khẩu (tối thiểu 8 ký tự gồm chữ, số và ký tự %, $): ");
             String password = scanner.nextLine();
             if (Validation.isValidPassword(password)) {
                 return password;
@@ -168,7 +171,7 @@ public class AccountManagement {
     public String inputEmpId(Scanner scanner) {
         int ID_MAX_LENGTH = 5;
         while (true) {
-            System.out.print("Nhập vào mã nhân viên: ");
+            System.out.print("Nhập vào mã nhân viên (Employee ID): ");
             String empId = scanner.nextLine();
 
             if (Validation.isValidLength(empId, ID_MAX_LENGTH)) {

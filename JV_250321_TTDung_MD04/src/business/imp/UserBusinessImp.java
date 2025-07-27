@@ -4,6 +4,7 @@ import business.UserBusiness;
 import dao.UserDAO;
 import dao.imp.UserDAOImp;
 import entity.Bill;
+import entity.Employee;
 import entity.PaginationResult;
 
 public class UserBusinessImp implements UserBusiness {
@@ -32,4 +33,10 @@ public class UserBusinessImp implements UserBusiness {
     public Bill findBillByCodeForUser(String billCode, boolean billType, String empId) {
         return userDAO.findBillByCodeForUser(billCode, billType, empId);
     }
+
+    @Override
+    public String updatePassword(int accId, String email, String phone, String oldPassword, String newPassword) {
+        return userDAO.updatePassword(accId, email, phone, oldPassword, newPassword);
+    }
+
 }

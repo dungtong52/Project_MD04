@@ -10,9 +10,7 @@ public interface BillReceiptDetailDAO {
 
     PaginationResult<BillDetail> getBillDetailsByBillId(long billId, int size, int currentPage);
 
-    BillDetail findBillDetailById(long billDetailId);
+    BillDetail findBillDetailById(long billDetailId, long billId);
 
     boolean updateBillDetails(BillDetail billDetail);
-
-    boolean acceptBill(long billId);
 }

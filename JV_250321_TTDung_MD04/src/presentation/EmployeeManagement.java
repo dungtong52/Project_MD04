@@ -1,7 +1,9 @@
 package presentation;
 
+import business.AccountBusiness;
 import business.EmployeeBusiness;
 import business.imp.EmployeeBusinessImp;
+import entity.Account;
 import entity.Employee;
 import business.PaginationBusiness;
 import validation.Validation;
@@ -45,7 +47,8 @@ public class EmployeeManagement {
                         addEmployee(scanner);
                         break;
                     case 3:
-                        updateEmployee(scanner);
+                        String employeeId = inputEmployeeIDForUpdate(scanner);
+                        updateEmployee(scanner, employeeId);
                         break;
                     case 4:
                         updateEmpStatus(scanner);
@@ -53,7 +56,7 @@ public class EmployeeManagement {
                     case 5:
                         System.out.println("Chọn cách thức tìm kiếm nhân viên");
                         System.out.println("1. Tìm kiếm theo tên nhân viên (nhập tên tương đối)");
-                        System.out.println("2. Tìm kiếm theo mã nhân viên ( nhập mã chính xác");
+                        System.out.println("2. Tìm kiếm theo mã nhân viên (nhập mã chính xác)");
                         System.out.print("Lựa chọn: ");
                         String numberChoice = scanner.nextLine();
                         if (Validation.isIntegerInRange(numberChoice, 1, 2)) {
@@ -91,8 +94,7 @@ public class EmployeeManagement {
         }
     }
 
-    public void updateEmployee(Scanner scanner) {
-        String employeeId = inputEmployeeIDForUpdate(scanner);
+    public void updateEmployee(Scanner scanner, String employeeId) {
         Employee updateEmployee = employeeBusiness.getEmployeeById(employeeId);
         PaginationPresentation.printTableHeader("employees");
         System.out.printf("| %-5s %s\n", 1, updateEmployee);
@@ -176,17 +178,19 @@ public class EmployeeManagement {
 
     public void updateEmpStatus(Scanner scanner) {
         String employeeId = inputEmployeeIDForUpdate(scanner);
-        Employee updateEmployee = employeeBusiness.getEmployeeById(employeeId);
-        short statusCurrent = updateEmployee.getEmpStatus();
+        Employee employee = employeeBusiness.getEmployeeById(employeeId);
+        short statusCurrent = employee.getEmpStatus();
         System.out.printf("Trạng thái hiện tại của nhân viên có ID %s: %s\n",
-                updateEmployee.getEmpId(),
+                employee.getEmpId(),
                 statusCurrent == 0 ? "Hoạt động" : (statusCurrent == 1 ? "Nghỉ chế độ" : "Nghỉ việc"));
 
         short statusUpdate = inputStatus(scanner);
         if (employeeBusiness.updateEmployeeStatus(employeeId, statusUpdate)) {
+            Employee updatedEmployee = employeeBusiness.getEmployeeById(employeeId);
+
             System.out.println(ANSI_BLUE + "Cập nhật trạng thái thành công" + ANSI_RESET);
             PaginationPresentation.printTableHeader("employees");
-            System.out.printf("| %-5s %s\n", 1, updateEmployee);
+            System.out.printf("| %-5s %s\n", 1, updatedEmployee);
             PaginationPresentation.printDivider();
         } else {
             System.out.println(ANSI_RED + "Cập nhật trạng thái thất bại!" + ANSI_RESET);

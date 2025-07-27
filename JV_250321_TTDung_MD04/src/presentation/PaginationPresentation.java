@@ -13,7 +13,7 @@ public class PaginationPresentation {
 
     private final static int PRODUCT_PER_PAGE = 10;
 
-    public static <T> void getListPagination(Scanner scanner, PaginationBusiness<T> paginationBusiness, String tableName, T item) {
+    public static <T> boolean getListPagination(Scanner scanner, PaginationBusiness<T> paginationBusiness, String tableName, T item) {
         boolean exit = false;
         boolean printRepeat = true;
         int currentPage = 1;
@@ -25,6 +25,11 @@ public class PaginationPresentation {
                 List<T> dataList = result.getDataList();
                 totalPages = result.getTotalPages();
                 int index = (currentPage - 1) * PRODUCT_PER_PAGE + 1;
+
+                if (dataList.isEmpty()) {
+                    System.out.println(ANSI_RED + "Danh sách trống!" + ANSI_RESET);
+                    return false;
+                }
 
                 PaginationPresentation.printTableHeader(tableName);
                 for (T data : dataList) {
@@ -71,7 +76,7 @@ public class PaginationPresentation {
                                 currentPage = Integer.parseInt(input);
                             }
                         } else {
-                            System.out.println(ANSI_RED + "Số nhập vào vượt quá số trang hiện có" + ANSI_RESET);
+                            System.out.println(ANSI_RED + "Thông tin nhập vào không hợp lệ hoặc vượt quá số trang hiện có" + ANSI_RESET);
                             printRepeat = false;
                         }
                         break;
@@ -83,6 +88,7 @@ public class PaginationPresentation {
                 printRepeat = false;
             }
         }
+        return true;
     }
 
     public static void printTableHeader(String tableName) {

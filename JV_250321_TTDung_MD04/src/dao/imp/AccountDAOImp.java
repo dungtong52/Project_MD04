@@ -28,6 +28,7 @@ public class AccountDAOImp implements AccountDAO {
             if (resultSet.next()) {
                 account = new Account();
                 account.setAccId(resultSet.getInt("acc_id"));
+                account.setUserName(resultSet.getString("user_name"));
                 account.setPermission(resultSet.getBoolean("permission"));
                 account.setEmpId(resultSet.getString("emp_id"));
                 account.setAccStatus(resultSet.getBoolean("acc_status"));

@@ -78,32 +78,15 @@ public class BillReceiptDetailsDAOImp implements BillReceiptDetailDAO {
     }
 
     @Override
-    public boolean acceptBill(long billId) {
-        Connection connection = null;
-        CallableStatement callableStatement = null;
-        try {
-            connection = ConnectionDB.openConnection();
-            callableStatement = connection.prepareCall("{call accept_bill(?)}");
-            callableStatement.setLong(1, billId);
-            int rows = callableStatement.executeUpdate();
-            if (rows > 0) return true;
-        } catch (Exception e) {
-            e.printStackTrace();
-        } finally {
-            ConnectionDB.closeConnection(connection, callableStatement);
-        }
-        return false;
-    }
-
-    @Override
-    public BillDetail findBillDetailById(long billDetailId) {
+    public BillDetail findBillDetailById(long billDetailId, long billId) {
         Connection connection = null;
         CallableStatement callableStatement = null;
         BillDetail billDetail = null;
         try {
             connection = ConnectionDB.openConnection();
-            callableStatement = connection.prepareCall("{call find_bill_detail_by_id(?)}");
+            callableStatement = connection.prepareCall("{call find_bill_detail_by_id(?,?)}");
             callableStatement.setLong(1, billDetailId);
+            callableStatement.setLong(2, billId);
             ResultSet resultSet = callableStatement.executeQuery();
 
             if (resultSet.next()) {
@@ -128,11 +111,12 @@ public class BillReceiptDetailsDAOImp implements BillReceiptDetailDAO {
         CallableStatement callableStatement = null;
         try {
             connection = ConnectionDB.openConnection();
-            callableStatement = connection.prepareCall("{call update_bill_detail(?,?,?,?)}");
+            callableStatement = connection.prepareCall("{call update_bill_detail(?,?,?,?,?)}");
             callableStatement.setLong(1, billDetail.getBillDetailId());
-            callableStatement.setString(2, billDetail.getProductId());
-            callableStatement.setInt(3, billDetail.getQuantity());
-            callableStatement.setFloat(4, billDetail.getPrice());
+            callableStatement.setLong(2, billDetail.getBillId());
+            callableStatement.setString(3, billDetail.getProductId());
+            callableStatement.setInt(4, billDetail.getQuantity());
+            callableStatement.setFloat(5, billDetail.getPrice());
             int rows = callableStatement.executeUpdate();
             return rows > 0;
         } catch (Exception e) {

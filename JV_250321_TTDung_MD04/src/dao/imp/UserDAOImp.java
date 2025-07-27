@@ -2,6 +2,7 @@ package dao.imp;
 
 import dao.UserDAO;
 import entity.Bill;
+import entity.Employee;
 import entity.PaginationResult;
 import utils.ConnectionDB;
 
@@ -42,7 +43,7 @@ public class UserDAOImp implements UserDAO {
                 bill.setBillStatus(resultSet.getShort("bill_status"));
                 billList.add(bill);
             }
-            billPaginationResult.setTotalPages(callableStatement.getInt(3));
+            billPaginationResult.setTotalPages(callableStatement.getInt(6));
             billPaginationResult.setDataList(billList);
         } catch (Exception e) {
             e.printStackTrace();
@@ -125,5 +126,26 @@ public class UserDAOImp implements UserDAO {
             ConnectionDB.closeConnection(connection, callableStatement);
         }
         return bill;
+    }
+
+    @Override
+    public String updatePassword(int accId, String email, String phone, String oldPassword, String newPassword) {
+        Connection connection = null;
+        CallableStatement callableStatement = null;
+        try {
+            connection = ConnectionDB.openConnection();
+            callableStatement = connection.prepareCall("{call update_password(?,?,?,?,?)}");
+            callableStatement.setInt(1, accId);
+            callableStatement.setString(2, email);
+            callableStatement.setString(3, phone);
+            callableStatement.setString(4, oldPassword);
+            callableStatement.setString(5, newPassword);
+            callableStatement.executeUpdate();
+            return null;
+        } catch (Exception e) {
+            return e.getMessage();
+        } finally {
+            ConnectionDB.closeConnection(connection, callableStatement);
+        }
     }
 }

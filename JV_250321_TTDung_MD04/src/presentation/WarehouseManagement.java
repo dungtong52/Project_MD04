@@ -11,6 +11,7 @@ public class WarehouseManagement {
     public static final String ANSI_RESET = "\u001B[0m";
     public static final String ANSI_RED = "\u001B[31m";
     public static final String ANSI_BLUE = "\u001B[34m";
+    public static final String ANSI_YELLOW = "\u001B[33m";
 
     private final ProductManagement productManagement;
     private final EmployeeManagement employeeManagement;
@@ -32,11 +33,12 @@ public class WarehouseManagement {
     }
 
     public void warehouseMenuForAdmin(Scanner scanner) {
-        System.out.print(ANSI_BLUE);
-        System.out.println("-".repeat(23));
-        System.out.println("|" + " ".repeat(5) + "HELLO ADMIN" + " ".repeat(5) + "|");
-        System.out.println("-".repeat(23));
-        System.out.print(ANSI_RESET);
+        System.out.println(ANSI_BLUE + "=======================================");
+        System.out.println("|                                     |");
+        System.out.println("|            CHÀO ADMIN!              |");
+        System.out.println("|     TÔI CÓ THỂ GIÚP GÌ CHO BẠN?     |");
+        System.out.println("|                                     |");
+        System.out.println("=======================================" + ANSI_RESET);
         while (true) {
             System.out.println("**************** WAREHOUSE MANAGEMENT ***************");
             System.out.println("1. Quản lý sản phẩm");
@@ -70,6 +72,7 @@ public class WarehouseManagement {
                         reportManagement.reportMenu(scanner);
                         break;
                     default:
+                        goodbye();
                         System.exit(0);
                 }
             } else {
@@ -79,11 +82,12 @@ public class WarehouseManagement {
     }
 
     public void warehouseMenuForUser(Scanner scanner) {
-        System.out.print(ANSI_BLUE);
-        System.out.println("-".repeat(22));
-        System.out.println("|" + " ".repeat(5) + "HELLO USER" + " ".repeat(5) + "|");
-        System.out.println("-".repeat(22));
-        System.out.print(ANSI_RESET);
+        System.out.println(ANSI_BLUE + "=======================================");
+        System.out.println("|                                     |");
+        System.out.println("|             CHÀO USER!              |");
+        System.out.println("|     TÔI CÓ THỂ GIÚP GÌ CHO BẠN?     |");
+        System.out.println("|                                     |");
+        System.out.println("=======================================" + ANSI_RESET);
 
         while (true) {
             System.out.println("**************** WAREHOUSE MANAGEMENT ***************");
@@ -95,11 +99,13 @@ public class WarehouseManagement {
             System.out.println("6. Tạo phiếu xuất");
             System.out.println("7. Cập nhật phiếu xuất");
             System.out.println("8. Tìm kiếm phiếu xuất");
-            System.out.println("9. Thoát");
+            System.out.println("9. Cập nhật mật khẩu tài khoản");
+            System.out.println("10. Cập nhật thông tin cá nhân");
+            System.out.println("11. Thoát");
             System.out.println("*".repeat(53));
             System.out.print("Lựa chọn của bạn: ");
             String choice = scanner.nextLine();
-            if (Validation.isIntegerInRange(choice, 1, 9)) {
+            if (Validation.isIntegerInRange(choice, 1, 11)) {
                 String billCode;
                 switch (Integer.parseInt(choice)) {
                     case 1:
@@ -130,18 +136,26 @@ public class WarehouseManagement {
                         billCode = inputBillCode(scanner, false);
                         findBillByCodeOfUser(scanner, billCode, false);
                         break;
+                    case 9:
+                        updatePassword(scanner);
+                        break;
+                    case 10:
+                        String empId = AccountManagement.currentAccount.getEmpId();
+                        employeeManagement.updateEmployee(scanner, empId);
+                        break;
                     default:
+                        goodbye();
                         System.exit(0);
                 }
             } else {
-                System.out.println(ANSI_RED + "Nhập vào số nguyên trong phạm vi 1-9" + ANSI_RESET);
+                System.out.println(ANSI_RED + "Nhập vào số nguyên trong phạm vi 1-11" + ANSI_RESET);
             }
         }
     }
 
     public void getBillByStatus(Scanner scanner, boolean billType) {
         String empId = AccountManagement.currentAccount.getEmpId();
-        System.out.print("Nhập vào trạng thái phiếu xuất muốn tìm kiếm (0. Tạo | 1. Hủy | 2. Duyệt): ");
+        System.out.printf("Nhập vào trạng thái phiếu '%s' muốn tìm kiếm (0. Tạo | 1. Hủy | 2. Duyệt): ", billType ? "Nhập" : "Xuất");
         String status = scanner.nextLine();
         if (Validation.isIntegerInRange(status, 0, 2)) {
             Bill receipt = new Bill();
@@ -164,8 +178,8 @@ public class WarehouseManagement {
         boolean exit = false;
         while (!exit) {
             System.out.println("1. Cập nhật ngày tạo phiếu");
-            System.out.println("2. Cập nhật trạng thái phiếu xuất");
-            System.out.println("3. Cập nhật chi tiết phiếu xuất");
+            System.out.println("2. Cập nhật trạng thái phiếu");
+            System.out.println("3. Cập nhật chi tiết phiếu");
             System.out.println("4. Thoát");
             System.out.print("Lựa chọn của bạn: ");
             String choice = scanner.nextLine();
@@ -173,11 +187,13 @@ public class WarehouseManagement {
                 switch (Integer.parseInt(choice)) {
                     case 1:
                         billUpdate.setCreated(billManagement.inputCreated(scanner));
+                        System.out.println(ANSI_BLUE + "Đã đổi ngày tạo phiếu. Thoát cập nhật để lưu thay đổi!" + ANSI_RESET);
                         break;
                     case 2:
                         short status = billManagement.inputStatus(scanner);
                         if (status != 2) {
                             billUpdate.setBillStatus(status);
+                            System.out.println(ANSI_BLUE + "Đã đổi trạng thái. Thoát cập nhật để lưu thay đổi!" + ANSI_RESET);
                         } else {
                             System.out.println(ANSI_RED + "Không thể cập nhật trạng thái sang 'Duyệt' ở chức năng này!" + ANSI_RESET);
                         }
@@ -194,9 +210,9 @@ public class WarehouseManagement {
         }
         boolean success = userBusiness.updateBillForUser(billUpdate);
         if (success) {
-            System.out.println(ANSI_BLUE + "Cập nhật phiếu nhập thành công." + ANSI_RESET);
+            System.out.println(ANSI_BLUE + "Cập nhật phiếu thành công." + ANSI_RESET);
         } else {
-            System.out.println(ANSI_RED + "Cập nhật phiếu nhập thất bại!" + ANSI_RESET);
+            System.out.println(ANSI_RED + "Cập nhật phiếu thất bại!" + ANSI_RESET);
         }
     }
 
@@ -207,14 +223,13 @@ public class WarehouseManagement {
         PaginationPresentation.printDivider();
 
         while (true) {
-            System.out.print("Bạn có muốn cập nhật phiếu nhập này không (1. Có || 2. Không): ");
+            System.out.print("Bạn có muốn cập nhật phiếu này không (1. Có || 2. Không): ");
             String number = scanner.nextLine();
             if (Validation.isIntegerInRange(number, 1, 2)) {
                 if (Integer.parseInt(number) == 1) {
                     updateBillOfUser(scanner, billCode, billType);
-                } else {
-                    break;
                 }
+                break;
             } else {
                 System.out.println(ANSI_RED + "Chỉ được nhập vào số nguyên 1 hoặc 2" + ANSI_RESET);
             }
@@ -224,7 +239,7 @@ public class WarehouseManagement {
     public String inputBillCode(Scanner scanner, boolean billType) {
         int CODE_MAX_LENGTH = 10;
         while (true) {
-            System.out.println("Nhập vào mã code: ");
+            System.out.print("Nhập vào mã code (Bill Code): ");
             String billCode = scanner.nextLine();
 
             if (Validation.isValidLength(billCode, CODE_MAX_LENGTH)) {
@@ -234,8 +249,35 @@ public class WarehouseManagement {
                     System.out.println(ANSI_RED + "Mã Code này KHÔNG tồn tại. Hãy nhập vào mã khác!" + ANSI_RESET);
                 }
             } else {
-                System.out.println(ANSI_RED + "Mã code nhập vào không hợp lệ. Vui lòng nhập lại!" + ANSI_RESET);
+                System.out.println(ANSI_RED + "Mã code nhập vào KHÔNG hợp lệ. Vui lòng nhập lại!" + ANSI_RESET);
             }
         }
+    }
+
+    public void updatePassword(Scanner scanner) {
+        int accId = AccountManagement.currentAccount.getAccId();
+        System.out.println(ANSI_YELLOW + "Mật khẩu mới" + ANSI_RESET);
+        String newPassword = accountManagement.inputPassword(scanner);
+        System.out.println(ANSI_YELLOW + "Xác nhận thông tin hiện tại" + ANSI_RESET);
+        String oldPassword = accountManagement.inputPassword(scanner);
+        String email = employeeManagement.inputEmail(scanner);
+        String phone = employeeManagement.inputPhone(scanner);
+
+        String errorMsg = userBusiness.updatePassword(accId, email, phone, oldPassword, newPassword);
+        if (errorMsg == null) {
+            System.out.println(ANSI_BLUE + "Cập nhật password thành công." + ANSI_RESET);
+        } else {
+            System.out.println(ANSI_RED + "Cập nhật password thất bại." + ANSI_RESET);
+            System.out.println(ANSI_RED + errorMsg + ANSI_RESET);
+        }
+    }
+
+    public void goodbye() {
+        System.out.println(ANSI_BLUE + "==================================");
+        System.out.println("|                                |");
+        System.out.println("|      TẠM BIỆT BẠN NHÉ!         |");
+        System.out.println("|    CẢM ƠN BẠN ĐÃ SỬ DỤNG!      |");
+        System.out.println("|                                |");
+        System.out.println("==================================");
     }
 }

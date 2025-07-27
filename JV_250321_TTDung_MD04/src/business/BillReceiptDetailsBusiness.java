@@ -8,9 +8,7 @@ public interface BillReceiptDetailsBusiness extends PaginationBusiness<BillDetai
 
     boolean createBatchDetails(List<BillDetail> billDetailList);
 
-    BillDetail findBillDetailById(long billDetailId);
+    BillDetail findBillDetailById(long billDetailId, long billId);
 
     boolean updateBillDetails(BillDetail billDetail);
-
-    boolean acceptBill(long billId);
 }

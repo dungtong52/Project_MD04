@@ -8,7 +8,7 @@ import java.sql.Connection;
 import java.sql.Date;
 import java.sql.SQLException;
 
-public class BillDAOImpImp extends BillReceiptDAOImp {
+public class BillDAOImp extends BillReceiptDAOImp {
 
     @Override
     public boolean acceptBill(Bill bill) {
@@ -34,7 +34,7 @@ public class BillDAOImpImp extends BillReceiptDAOImp {
                     ex.printStackTrace();
                 }
             }
-            e.printStackTrace();
+            System.out.println("\u001B[31m" + e.getMessage() + "\u001B[0m");
         } finally {
             ConnectionDB.closeConnection(connection, callableStatement);
         }
